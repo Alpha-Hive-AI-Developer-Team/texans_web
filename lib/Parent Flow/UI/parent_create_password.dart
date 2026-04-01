@@ -83,6 +83,7 @@ class _ParentCreatePasswordPageState extends State<ParentCreatePasswordPage> {
         otp: _otp,
         password: password,
         confirmPassword: confirmPassword,
+        action: _action,
       );
 
       if (response.statusCode >= 200 && response.statusCode < 300) {

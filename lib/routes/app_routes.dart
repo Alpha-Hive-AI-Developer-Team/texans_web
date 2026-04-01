@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:texans_web/pages/create_password.dart';
 import 'package:texans_web/pages/decline_screen.dart';
@@ -14,6 +15,7 @@ class AppRoutes {
   //Common
   static const String success = '/success';
   static const String decline = '/decline';
+  static const String root = '/';
 
   //Parent
   static const String parentAcceptInvitation = '/accept-invitation';
@@ -37,6 +39,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.parentCreatePassword,
       page: () => const ParentCreatePasswordPage(),
+    ),
+    GetPage(
+      name: AppRoutes.root,
+      page: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
     ),
   ];
 }

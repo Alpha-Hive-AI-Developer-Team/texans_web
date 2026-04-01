@@ -52,8 +52,13 @@ class WpApi {
     required String otp,
     required String password,
     required String confirmPassword,
+    required String action,
   }) {
-    final query = <String, String>{'email': email, 'otp': otp, 'action': 'set'};
+    final query = <String, String>{
+      'email': email,
+      'otp': otp,
+      'action': action,
+    };
 
     final body = {'password': password, 'confirm_password': confirmPassword};
 
