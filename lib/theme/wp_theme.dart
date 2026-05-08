@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:texans_web/theme/wp_colors.dart';
 
 class WpTheme {
@@ -19,7 +18,7 @@ class WpTheme {
     );
 
     return base.copyWith(
-      textTheme: GoogleFonts.interTextTheme(base.textTheme).apply(
+      textTheme: base.textTheme.apply(
         bodyColor: WpColors.textPrimary,
         displayColor: WpColors.textPrimary,
       ),

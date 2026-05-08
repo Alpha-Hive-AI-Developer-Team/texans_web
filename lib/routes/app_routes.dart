@@ -9,7 +9,11 @@ class AppRoutes {
   AppRoutes._();
 
   //Coach
-  static const String createPassword = '/create-password';
+  static const String coachCreatePassword = '/coach/create-password';
+  static const String createPassword = '/create-password'; // legacy
+
+  //Player
+  static const String playerCreatePassword = '/player/create-password';
 
   //Common
   static const String success = '/success';
@@ -25,6 +29,14 @@ class AppPages {
   AppPages._();
 
   static final List<GetPage<dynamic>> pages = [
+    GetPage(
+      name: AppRoutes.playerCreatePassword,
+      page: () => const CreatePasswordPage(),
+    ),
+    GetPage(
+      name: AppRoutes.coachCreatePassword,
+      page: () => const CreatePasswordPage(),
+    ),
     GetPage(
       name: AppRoutes.createPassword,
       page: () => const CreatePasswordPage(),

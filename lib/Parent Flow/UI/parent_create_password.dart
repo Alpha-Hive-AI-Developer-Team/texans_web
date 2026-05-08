@@ -83,7 +83,7 @@ class _ParentCreatePasswordPageState extends State<ParentCreatePasswordPage> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await WpApi.parentsetPass(
+      final response = await WpApi.parentSetPassword(
         email: _email,
         otp: _otp,
         password: password,

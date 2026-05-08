@@ -28,16 +28,33 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
   void initState() {
     super.initState();
     final uri = Uri.base;
-    final flow = uri.queryParameters['flow']?.toLowerCase() ?? '';
-    final isParent = flow == 'parent';
+    final flow = _detectFlow(uri);
+    if (Get.isRegistered<InvitationController>()) {
+      Get.delete<InvitationController>(force: true);
+    }
     _controller = Get.put(
       InvitationController(
         email: uri.queryParameters['email'] ?? '',
         otp: uri.queryParameters['otp'] ?? '',
         action: uri.queryParameters['action'] ?? 'set',
-        isParentFlow: isParent,
+        flow: flow,
       ),
     );
+  }
+
+  InvitationFlow _detectFlow(Uri uri) {
+    final qp = (uri.queryParameters['flow'] ?? '').trim().toLowerCase();
+    if (qp == 'parent') return InvitationFlow.parent;
+    if (qp == 'player') return InvitationFlow.player;
+    if (qp == 'coach') return InvitationFlow.coach;
+
+    final segs = uri.pathSegments.map((s) => s.toLowerCase()).toList();
+    if (segs.isNotEmpty) {
+      if (segs.first == 'parent') return InvitationFlow.parent;
+      if (segs.first == 'player') return InvitationFlow.player;
+      if (segs.first == 'coach') return InvitationFlow.coach;
+    }
+    return InvitationFlow.coach; // backward compatible default
   }
 
   @override
@@ -203,7 +220,7 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
             password: password,
             confirmPassword: confirm,
           )
-        : await _controller.acceptInvitation(
+        : await _controller.setPassword(
             password: password,
             confirmPassword: confirm,
           );
@@ -217,9 +234,7 @@ class _CreatePasswordPageState extends State<CreatePasswordPage> {
     final confirmed = await _showDeclineConfirmDialog();
     if (!confirmed) return;
 
-    final success = _controller.isParentFlow
-        ? await _controller.declineParentInvitation()
-        : await _controller.declineInvitation();
+    final success = await _controller.declineInvitation();
     if (success) {
       Get.off(() => const InvitationDeclinePage());
     }

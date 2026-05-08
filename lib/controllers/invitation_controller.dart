@@ -3,14 +3,16 @@ import 'package:texans_web/api/wp_api.dart';
 import 'package:texans_web/theme/wp_snackbar.dart';
 import 'package:texans_web/utils/api_response_message.dart';
 
+enum InvitationFlow { coach, player, parent }
+
 class InvitationController extends GetxController {
   final RxString email = ''.obs;
   final RxString otp = ''.obs;
   final RxString action = 'set'.obs;
 
-  /// When true, [acceptInvitation] is not used — call [parentSetPassword] instead
-  /// (parent must use `/api/v1/parent/auth/reset-password`, not coach).
-  final bool isParentFlow;
+  final InvitationFlow flow;
+
+  bool get isParentFlow => flow == InvitationFlow.parent;
 
   final RxBool isAcceptLoading = false.obs;
   final RxBool isDeclineLoading = false.obs; // ← separate loader
@@ -19,7 +21,7 @@ class InvitationController extends GetxController {
     required String email,
     required String otp,
     String action = 'set',
-    this.isParentFlow = false,
+    this.flow = InvitationFlow.coach,
   }) {
     this.email.value = email.trim();
     this.otp.value = otp.trim();
@@ -33,7 +35,7 @@ class InvitationController extends GetxController {
   }) async {
     isAcceptLoading.value = true;
     try {
-      final response = await WpApi.parentsetPass(
+      final response = await WpApi.parentSetPassword(
         email: email.value,
         otp: otp.value,
         password: password,
@@ -61,20 +63,36 @@ class InvitationController extends GetxController {
     }
   }
 
-  /// ✅ Accept Invitation (Set Password)
-  Future<bool> acceptInvitation({
+  /// ✅ Set Password (coach/player)
+  Future<bool> setPassword({
     required String password,
     required String confirmPassword,
   }) async {
     isAcceptLoading.value = true;
     try {
-      final response = await WpApi.acceptInvitation(
-        email: email.value,
-        otp: otp.value,
-        action: action.value,
-        password: password,
-        confirmPassword: confirmPassword,
-      );
+      final response = switch (flow) {
+        InvitationFlow.player => await WpApi.playerSetPassword(
+            email: email.value,
+            otp: otp.value,
+            action: action.value,
+            password: password,
+            confirmPassword: confirmPassword,
+          ),
+        InvitationFlow.coach => await WpApi.coachSetPassword(
+            email: email.value,
+            otp: otp.value,
+            action: action.value,
+            password: password,
+            confirmPassword: confirmPassword,
+          ),
+        InvitationFlow.parent => await WpApi.parentSetPassword(
+            email: email.value,
+            otp: otp.value,
+            action: action.value,
+            password: password,
+            confirmPassword: confirmPassword,
+          ),
+      };
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final msg = messageFromApiBody(response.body) ??
@@ -100,33 +118,14 @@ class InvitationController extends GetxController {
   Future<bool> declineInvitation() async {
     isDeclineLoading.value = true;
     try {
-      final response = await WpApi.declineInvitation(email: email.value);
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final msg = messageFromApiBody(response.body) ??
-            'You have declined the invitation.';
-        WpSnackbar.success('Success', msg);
-        return true;
-      } else {
-        _showErrorFromResponse(
-          response.body,
-          fallback: 'Failed to decline invitation',
-        );
-        return false;
-      }
-    } catch (_) {
-      _showNetworkError();
-      return false;
-    } finally {
-      isDeclineLoading.value = false;
-    }
-  }
-
-  /// ❌ Decline parent invitation
-  Future<bool> declineParentInvitation() async {
-    isDeclineLoading.value = true;
-    try {
-      final response = await WpApi.parentDeclineInvitation(email: email.value);
+      final response = switch (flow) {
+        InvitationFlow.player =>
+          await WpApi.playerDeclineInvitation(email: email.value),
+        InvitationFlow.parent =>
+          await WpApi.parentDeclineInvitation(email: email.value),
+        InvitationFlow.coach =>
+          await WpApi.coachDeclineInvitation(email: email.value),
+      };
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final msg = messageFromApiBody(response.body) ??
